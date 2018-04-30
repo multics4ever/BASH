@@ -1,0 +1,164 @@
+#!/bin/bash
+#
+# A simple menu driven program to display information about a UNIX/Linux systemx
+#
+# Written by Dan Hogan daniel_c_hogan@hotmail.com
+#
+
+
+
+# Function: show_menu
+# This function displays the menu.
+function show_menu(){
+
+echo "           +------------------------------------------+ "
+echo "           |    Menu to show any of the following:    | "
+echo "           + -----------------------------------------+ "
+echo
+echo "   1. Computer name                     5. Who is logged in now"
+echo "   2. Operating system name             6. Who logged in most recently"
+echo "   3. Time since last reboot            7. Help"
+echo "   4. Process using most memory         8. Quit"
+echo
+}
+
+# Function: pause
+# This funtion displays a prompt allowing the user to go back to the menu.
+function pause(){
+local message="$@"
+[ -z $message ] && message="Hit the <Enter> key to continue..."
+read -p "$message" readEnterKey
+}
+
+
+# Purpose - Get the name of the computer
+function computer_name(){
+echo
+echo " The name of the computer is: $(hostname)"
+echo
+pause
+}
+
+# Purpose - Get the name of the operating system
+function os_name(){
+echo
+echo " The name of the operating system is: $(uname)"
+echo
+pause
+}
+
+# Purpose - Get the elapsed time since the last reboot
+function up_time(){
+echo
+echo " The elapsed time since last reboot is: $(uptime | cut -d "," -f1 | cut -c 11-)"
+echo
+pause
+}
+
+# Purpose - Get the elapsed time since the last reboot
+function mem_top(){
+echo
+echo " The top five processes using the most memory are:"
+ps aux | awk '{print $2, $4, $11}' | sort -k2rn |tail -n1
+ps aux | awk '{print $2, $4, $11}' | sort -k2rn | head -n 5
+echo
+pause
+}
+
+
+# Purpose - Get the internal IP address
+function internal_ip(){
+echo
+echo " The internal IP address is: $(ifconfig |grep inet |grep broadcast |cut -d " " -f2)"
+echo
+pause
+}
+
+
+
+# Purpose - Get Public IP address form your ISP
+function external_ip(){
+cmd='curl -s'
+echo
+echo " Searching for the external (public) IP address:"
+ipservice=checkip.dyndns.org
+pipecmd=(sed -e 's/.*Current IP Address: //' -e 's/<.*$//') #using brackets to use it as an array and avoid need of scaping
+$cmd "$ipservice" | "${pipecmd[@]}"
+echo
+pause
+}
+
+
+
+# Purpose - Display a list of users currently logged on 
+# display a list of receltly loggged in users 
+function who_info(){
+echo
+echo " List of users currently logged in:"
+who -H
+echo
+pause
+}
+
+
+
+# display a list of receltly loggged in users 
+function last_info(){
+echo
+echo " Searching for the list of last users logged in: "
+last
+echo " End of the list of last users logged in."
+echo
+pause
+}
+
+# Purpose - Display a list of users currently logged on 
+# display a list of receltly loggged in users 
+function help_function(){
+clear
+echo
+echo "This is the help function."
+echo
+echo "This program was written in BASH by Dan Hogan.  The purpose of this"
+echo "program is to display basic system information on computers running"
+echo "POSIX complaint operating systems, such as UNIX, Linux, BSD, Mac OSX."
+echo
+echo "The program displays a menu allowing the user to query information, and"
+echo "display that information to the screen."
+echo
+pause
+}
+
+
+# Purpose - Get input via the keyboard and make a decision using case..esac 
+function read_input(){
+local c
+read -p "Enter your choice [ 1 - 8 ] " c
+case $c in
+1) computer_name ;;
+2) os_name ;;
+3) up_time ;;
+4) mem_top ;;
+5) who_info ;;
+6) last_info ;;
+7) help_function ;;
+8) echo "Bye!"; exit 0 ;;
+*) 
+echo "Please select one of the numbered options."
+pause
+esac
+}
+
+# ignore CTRL+C, CTRL+Z and quit singles using the trap
+trap '' SIGINT SIGQUIT SIGTSTP
+
+# main logic
+while true
+do
+clear
+show_menu # display memu
+read_input # wait for user input
+done
+
+
+
